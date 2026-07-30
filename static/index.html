@@ -142,6 +142,10 @@
     display: flex; flex-direction: column; gap: 8px;
   }
   .service-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .category-header { margin: 32px 0 14px; }
+  .category-header:first-of-type { margin-top: 20px; }
+  .category-title { font-family: 'Archivo Black', sans-serif; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin: 0 0 4px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .category-tagline { margin: 6px 0 0; font-size: 13px; color: var(--text-dim); }
   .service-card .icon { font-size: 28px; }
   .service-card h3 { margin: 0; font-size: 17px; }
   .service-card p { margin: 0; font-size: 13px; color: var(--text-dim); }
@@ -261,7 +265,7 @@
 <body>
 <div class="topbar">
   <a href="#" class="brand" onclick="navigateHome(event)">
-    <img src="/static/img/skyline-logo.png" alt="Skyline">
+    <img src="/static/img/skyline-logo.png" alt="Skyline" id="brandLogo">
     <span class="brand-name">SITE ASSESSMENT</span>
   </a>
   <div class="right">
@@ -310,6 +314,8 @@ function el(tag, attrs={}, children=[]) {
 function applyTheme() {
   document.documentElement.setAttribute('data-theme', state.theme === 'light' ? 'light' : 'dark');
   qs('#themeToggle').textContent = state.theme === 'light' ? '☀️' : '🌙';
+  const logo = qs('#brandLogo');
+  if (logo) logo.src = state.theme === 'light' ? '/static/img/skyline-logo-dark.png' : '/static/img/skyline-logo.png';
 }
 qs('#themeToggle').addEventListener('click', () => {
   state.theme = state.theme === 'light' ? 'dark' : 'light';
@@ -484,33 +490,61 @@ const SERVICE_ICONS = {
   firefighting_equipment: '🔥',
 };
 
+// Categorization mirrors skyline-cinematic.onrender.com
+const SERVICE_CATEGORIES = [
+  {
+    id: 'cleaning_maintenance',
+    name: 'Cleaning & Maintenance',
+    tagline: 'Facade, roof, and aerial inspection services.',
+    services: ['facade_cleaning', 'aerial_imaging', 'roof_leak_inspection'],
+  },
+  {
+    id: 'response_rescue',
+    name: 'Response & Rescue',
+    tagline: 'Emergency, firefighting, and rescue equipment surveys.',
+    services: ['firefighting_equipment'],
+  },
+];
+
 function renderPicker() {
   const app = qs('#app');
   app.innerHTML = '';
   app.appendChild(el('a', { href: '#', class: 'back-link', onclick: navigateHome }, '← Back to dashboard'));
   app.appendChild(el('div', { class: 'page-header' }, [el('h1', {}, 'Choose a service')]));
 
-  const grid = el('div', { class: 'service-grid' });
-  state.services.forEach(s => {
-    const card = el('div', {
-      class: 'service-card',
-      onclick: async () => {
-        const res = await fetch(`${API}/assessments`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ service_id: s.id, assessor: 'Brice Adler' }),
-        });
-        const created = await res.json();
-        location.hash = `a=${created.id}`;
-      },
-    }, [
-      el('div', { class: 'icon' }, SERVICE_ICONS[s.id] || '📋'),
-      el('h3', {}, s.name),
-      el('p', {}, s.tagline),
-    ]);
-    grid.appendChild(card);
+  const byId = Object.fromEntries(state.services.map(s => [s.id, s]));
+
+  SERVICE_CATEGORIES.forEach(cat => {
+    const catServices = cat.services.map(id => byId[id]).filter(Boolean);
+    if (!catServices.length) return;
+
+    app.appendChild(el('div', { class: 'category-header' }, [
+      el('h2', { class: 'category-title' }, cat.name),
+      el('p', { class: 'category-tagline' }, cat.tagline),
+    ]));
+
+    const grid = el('div', { class: 'service-grid' });
+    catServices.forEach(s => {
+      const card = el('div', {
+        class: 'service-card',
+        onclick: async () => {
+          const res = await fetch(`${API}/assessments`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ service_id: s.id, assessor: 'Brice Adler' }),
+          });
+          const created = await res.json();
+          location.hash = `a=${created.id}`;
+        },
+      }, [
+        el('div', { class: 'icon' }, SERVICE_ICONS[s.id] || '📋'),
+        el('h3', {}, s.name),
+        el('p', {}, s.tagline),
+      ]);
+      grid.appendChild(card);
+    });
+    app.appendChild(grid);
   });
-  app.appendChild(grid);
 }
 
 // ─── Editor ──────────────────────────────────────────────────────────────
