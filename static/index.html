@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Skyline Site Assessment</title>
+<link rel="icon" href="/static/favicon.ico">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="manifest" href="/static/site.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Carlito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #E8B84B;
+    --gold-dim: #b8923a;
+    --black: #111111;
+    --dark-bg: #0f1115;
+    --dark-surface: #171a21;
+    --dark-surface-2: #1e222b;
+    --dark-border: #2a2f3a;
+    --dark-text: #f2f0ea;
+    --dark-text-dim: #9aa0ad;
+    --light-bg: #F7F5EF;
+    --light-surface: #ffffff;
+    --light-surface-2: #f0ede4;
+    --light-border: #e2ddd0;
+    --light-text: #111111;
+    --light-text-dim: #666660;
+
+    --bg: var(--dark-bg);
+    --surface: var(--dark-surface);
+    --surface-2: var(--dark-surface-2);
+    --border: var(--dark-border);
+    --text: var(--dark-text);
+    --text-dim: var(--dark-text-dim);
+  }
+  html[data-theme="light"] {
+    --bg: var(--light-bg);
+    --surface: var(--light-surface);
+    --surface-2: var(--light-surface-2);
+    --border: var(--light-border);
+    --text: var(--light-text);
+    --text-dim: var(--light-text-dim);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Carlito', sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, .brand-font { font-family: 'Archivo Black', sans-serif; }
+  a { color: var(--gold); text-decoration: none; }
+  button { font-family: 'Carlito', sans-serif; cursor: pointer; }
+  input, textarea, select { font-family: 'Carlito', sans-serif; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 18px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .topbar .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .topbar .brand img { height: 28px; }
+  .topbar .brand-name { font-family: 'Archivo Black', sans-serif; font-size: 14px; letter-spacing: 0.5px; white-space: nowrap; }
+  .topbar .right { display: flex; align-items: center; gap: 10px; }
+  .user-pill {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface-2); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 20px; font-size: 12.5px; color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .theme-toggle {
+    background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    width: 34px; height: 34px; border-radius: 50%; font-size: 15px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .container { max-width: 980px; margin: 0 auto; padding: 20px 16px 90px; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 11px 18px; border-radius: 9px; border: none; font-weight: 700; font-size: 14px;
+    transition: transform .1s ease, opacity .15s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-gold { background: var(--gold); color: #17140a; }
+  .btn-gold:hover { opacity: 0.92; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--gold); }
+  .btn-danger { background: transparent; border: 1px solid #c0483f; color: #e0685d; }
+  .btn-danger:hover { background: rgba(192,72,63,0.12); }
+  .btn-sm { padding: 7px 12px; font-size: 12.5px; border-radius: 7px; }
+  .btn-block { width: 100%; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .page-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .page-header h1 { font-size: 22px; margin: 0; }
+
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+  .filters select, .filters input {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 12px; border-radius: 8px; font-size: 13.5px;
+  }
+  .filters input { flex: 1; min-width: 140px; }
+
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+
+  .a-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; display: flex; flex-direction: column; gap: 8px; position: relative;
+  }
+  .a-card:hover { border-color: var(--gold); }
+  .a-card .service-badge {
+    display: inline-block; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--gold); background: rgba(232,184,75,0.12);
+    padding: 3px 9px; border-radius: 20px; width: fit-content;
+  }
+  .a-card h3 { margin: 2px 0 0; font-size: 16px; font-family: 'Carlito', sans-serif; font-weight: 700; }
+  .a-card .meta-line { font-size: 12.5px; color: var(--text-dim); }
+  .a-card .status-row { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .status-pill { font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 700; text-transform: uppercase; }
+  .status-draft { background: rgba(154,160,173,0.18); color: var(--text-dim); }
+  .status-submitted { background: rgba(94,180,120,0.18); color: #6fcf8f; }
+  .status-archived { background: rgba(154,160,173,0.1); color: var(--text-dim); }
+  .card-actions { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim); }
+  .empty-state .big-icon { font-size: 46px; margin-bottom: 12px; }
+
+  .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .service-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 22px 18px; cursor: pointer; transition: border-color .15s ease, transform .1s ease;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .service-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+  .service-card .icon { font-size: 28px; }
+  .service-card h3 { margin: 0; font-size: 17px; }
+  .service-card p { margin: 0; font-size: 13px; color: var(--text-dim); }
+
+  .editor-header {
+    position: sticky; top: 57px; z-index: 30;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .editor-header .prop-name-input {
+    font-family: 'Archivo Black', sans-serif; font-size: 17px; background: transparent; border: none;
+    color: var(--text); border-bottom: 2px dashed transparent; padding: 2px 0; flex: 1; min-width: 160px;
+  }
+  .editor-header .prop-name-input:focus { outline: none; border-bottom-color: var(--gold); }
+  .save-status { font-size: 11.5px; color: var(--text-dim); white-space: nowrap; }
+  .save-status.saving { color: var(--gold); }
+
+  .section-block { margin: 26px 0; }
+  .section-block h2 { font-size: 17px; margin: 0 0 4px; }
+  .section-rule { height: 3px; width: 46px; background: var(--gold); margin-bottom: 10px; border-radius: 2px; }
+  .section-desc { font-size: 12.5px; color: var(--text-dim); margin: 0 0 12px; font-style: italic; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 6px; }
+  .field label .req { color: var(--gold); margin-left: 3px; }
+  .field .help { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .field input[type="text"], .field input[type="number"], .field input[type="date"],
+  .field textarea, .field select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 10px 12px; border-radius: 8px; font-size: 14px;
+  }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--gold); }
+  .field textarea { min-height: 70px; resize: vertical; }
+  .unit-wrap { position: relative; }
+  .unit-wrap .unit-suffix {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    font-size: 12px; color: var(--text-dim); pointer-events: none;
+  }
+
+  .segmented { display: flex; gap: 8px; flex-wrap: wrap; }
+  .segmented button {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 9px 16px; border-radius: 8px; font-size: 13.5px;
+  }
+  .segmented button.active { background: var(--gold); color: #17140a; border-color: var(--gold); font-weight: 700; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    padding: 8px 14px; border-radius: 20px; font-size: 13px;
+  }
+  .chip.active { background: var(--gold); color: #17140a; border-color: var(--gold); font-weight: 700; }
+
+  .radio-list { display: flex; flex-direction: column; gap: 8px; }
+  .radio-opt {
+    display: flex; align-items: flex-start; gap: 10px; background: var(--surface);
+    border: 1px solid var(--border); padding: 10px 12px; border-radius: 8px; font-size: 13.5px;
+  }
+  .radio-opt.active { border-color: var(--gold); background: rgba(232,184,75,0.08); }
+  .radio-opt input { margin-top: 3px; accent-color: var(--gold); }
+
+  .attach-zone {
+    border: 2px dashed var(--border); border-radius: 12px; padding: 26px 16px; text-align: center;
+    color: var(--text-dim); font-size: 13.5px; cursor: pointer;
+  }
+  .attach-zone:hover { border-color: var(--gold); color: var(--text); }
+  .attach-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 14px; }
+  .attach-thumb { position: relative; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+  .attach-thumb img, .attach-thumb .video-placeholder {
+    width: 100%; height: 90px; object-fit: cover; display: block; background: var(--surface-2);
+  }
+  .attach-thumb .video-placeholder { display: flex; align-items: center; justify-content: center; font-size: 24px; }
+  .attach-thumb .cap { font-size: 10px; padding: 4px 6px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .attach-thumb .del-btn {
+    position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.6); color: #fff; border: none;
+    width: 22px; height: 22px; border-radius: 50%; font-size: 12px; display: flex; align-items: center; justify-content: center;
+  }
+
+  .submit-bar { margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .banner { padding: 12px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 16px; }
+  .banner-success { background: rgba(94,180,120,0.14); color: #6fcf8f; border: 1px solid rgba(111,207,143,0.3); }
+  .banner-error { background: rgba(224,104,93,0.14); color: #e0685d; border: 1px solid rgba(224,104,93,0.3); }
+
+  .view-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+
+  .back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 13.5px; margin-bottom: 14px; }
+  .back-link:hover { color: var(--gold); }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 16px;
+  }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; max-width: 380px; width: 100%; }
+  .modal h3 { margin: 0 0 10px; font-size: 16px; }
+  .modal p { font-size: 13.5px; color: var(--text-dim); margin: 0 0 18px; }
+  .modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .spinner {
+    display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.25);
+    border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .view-qa-table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .view-qa-table td { padding: 8px 6px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 13.5px; }
+  .view-qa-table td.q { width: 42%; font-weight: 700; color: var(--text-dim); }
+
+  @media (max-width: 600px) {
+    .topbar .brand-name { display: none; }
+    .container { padding: 14px 12px 90px; }
+    .page-header h1 { font-size: 19px; }
+    .editor-header { top: 53px; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="#" class="brand" onclick="navigateHome(event)">
+    <img src="/static/img/skyline-logo.png" alt="Skyline">
+    <span class="brand-name">SITE ASSESSMENT</span>
+  </a>
+  <div class="right">
+    <div class="user-pill" id="userPill">👤 Brice Adler</div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle theme">🌙</button>
+  </div>
+</div>
+
+<div id="app" class="container"></div>
+
+<script>
+// ─── State ────────────────────────────────────────────────────────────────
+const state = {
+  view: 'dashboard',        // dashboard | picker | editor | detail
+  currentAssessmentId: null,
+  assessments: [],
+  services: [],
+  schemas: [],
+  filters: { service_id: '', status: '', search: '' },
+  currentAssessment: null,
+  saveTimer: null,
+  saveState: 'idle',        // idle | saving | saved
+  lastSavedAt: null,
+  theme: 'dark',
+};
+
+const API = '/api';
+
+function qs(sel, root=document) { return root.querySelector(sel); }
+function el(tag, attrs={}, children=[]) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k === 'html') e.innerHTML = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else e.setAttribute(k, v);
+  }
+  for (const c of [].concat(children)) {
+    if (c == null) continue;
+    e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  return e;
+}
+
+// ─── Theme (dark default, no persistence per spec — but respect URL hash flag) ──
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', state.theme === 'light' ? 'light' : 'dark');
+  qs('#themeToggle').textContent = state.theme === 'light' ? '☀️' : '🌙';
+}
+qs('#themeToggle').addEventListener('click', () => {
+  state.theme = state.theme === 'light' ? 'dark' : 'light';
+  applyTheme();
+});
+
+// ─── Routing via hash: #a=<id> for editor/detail, #new for picker, else dashboard ──
+function navigateHome(e) { if (e) e.preventDefault(); location.hash = ''; }
+
+function parseHash() {
+  const h = location.hash.replace(/^#/, '');
+  if (h === 'new') return { view: 'picker' };
+  const m = h.match(/^a=(\d+)$/);
+  if (m) return { view: 'auto', id: parseInt(m[1], 10) };
+  return { view: 'dashboard' };
+}
+
+async function routeFromHash() {
+  const r = parseHash();
+  if (r.view === 'picker') {
+    state.view = 'picker';
+    renderPicker();
+  } else if (r.view === 'auto' && r.id) {
+    state.currentAssessmentId = r.id;
+    await loadAssessment(r.id);
+    // decide editor vs detail view based on status
+    if (state.currentAssessment && state.currentAssessment.status === 'draft') {
+      state.view = 'editor';
+      renderEditor();
+    } else {
+      state.view = 'detail';
+      renderDetail();
+    }
+  } else {
+    state.view = 'dashboard';
+    state.currentAssessmentId = null;
+    await loadDashboard();
+    renderDashboard();
+  }
+}
+window.addEventListener('hashchange', routeFromHash);
+
+// ─── Data loaders ────────────────────────────────────────────────────────
+async function loadServices() {
+  const res = await fetch(`${API}/services`);
+  state.services = await res.json();
+}
+async function loadSchemas() {
+  const res = await fetch(`${API}/schemas`);
+  state.schemas = await res.json();
+}
+async function loadDashboard() {
+  const params = new URLSearchParams();
+  if (state.filters.service_id) params.set('service_id', state.filters.service_id);
+  if (state.filters.status) params.set('status', state.filters.status);
+  if (state.filters.search) params.set('search', state.filters.search);
+  const res = await fetch(`${API}/assessments?${params.toString()}`);
+  const body = await res.json();
+  state.assessments = body.items || [];
+}
+async function loadAssessment(id) {
+  const res = await fetch(`${API}/assessments/${id}`);
+  if (!res.ok) { state.currentAssessment = null; return; }
+  state.currentAssessment = await res.json();
+}
+function serviceById(id) { return state.schemas.find(s => s.id === id); }
+
+// ─── Dashboard ───────────────────────────────────────────────────────────
+function renderDashboard() {
+  const app = qs('#app');
+  app.innerHTML = '';
+
+  const header = el('div', { class: 'page-header' }, [
+    el('h1', {}, 'Site Assessments'),
+    el('button', { class: 'btn btn-gold', onclick: () => { location.hash = 'new'; } }, '+ New Assessment'),
+  ]);
+  app.appendChild(header);
+
+  const filters = el('div', { class: 'filters' });
+  const serviceSelect = el('select', { onchange: (e) => { state.filters.service_id = e.target.value; loadDashboard().then(renderDashboard); } });
+  serviceSelect.appendChild(el('option', { value: '' }, 'All services'));
+  state.services.forEach(s => {
+    const opt = el('option', { value: s.id }, s.name);
+    if (state.filters.service_id === s.id) opt.selected = true;
+    serviceSelect.appendChild(opt);
+  });
+  filters.appendChild(serviceSelect);
+
+  const statusSelect = el('select', { onchange: (e) => { state.filters.status = e.target.value; loadDashboard().then(renderDashboard); } });
+  ['', 'draft', 'submitted', 'archived'].forEach(s => {
+    const opt = el('option', { value: s }, s === '' ? 'All statuses' : s[0].toUpperCase() + s.slice(1));
+    if (state.filters.status === s) opt.selected = true;
+    statusSelect.appendChild(opt);
+  });
+  filters.appendChild(statusSelect);
+
+  const searchInput = el('input', { type: 'text', placeholder: 'Search property or contact…', value: state.filters.search });
+  let debounceT;
+  searchInput.addEventListener('input', (e) => {
+    clearTimeout(debounceT);
+    const v = e.target.value;
+    debounceT = setTimeout(() => { state.filters.search = v; loadDashboard().then(renderDashboard); }, 400);
+  });
+  filters.appendChild(searchInput);
+  app.appendChild(filters);
+
+  if (state.assessments.length === 0) {
+    app.appendChild(el('div', { class: 'empty-state' }, [
+      el('div', { class: 'big-icon' }, '📋'),
+      el('p', {}, 'No assessments yet. Start your first site visit.'),
+      el('button', { class: 'btn btn-gold', onclick: () => { location.hash = 'new'; } }, '+ New Assessment'),
+    ]));
+    return;
+  }
+
+  const grid = el('div', { class: 'card-grid' });
+  state.assessments.forEach(a => grid.appendChild(assessmentCard(a)));
+  app.appendChild(grid);
+}
+
+function assessmentCard(a) {
+  const svc = serviceById(a.service_id) || {};
+  const propName = a.property_name || (a.data && a.data.property_name) || 'Untitled Property';
+  const date = new Date(a.updated_at || a.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  const card = el('div', { class: 'a-card' });
+  card.appendChild(el('span', { class: 'service-badge' }, svc.name || a.service_id));
+  card.appendChild(el('h3', {}, propName));
+  card.appendChild(el('div', { class: 'meta-line' }, `${a.contact_name || 'No contact yet'} · Updated ${date}`));
+  const statusRow = el('div', { class: 'status-row' }, [
+    el('span', { class: `status-pill status-${a.status}` }, a.status),
+  ]);
+  card.appendChild(statusRow);
+  const actions = el('div', { class: 'card-actions' });
+  actions.appendChild(el('button', {
+    class: 'btn btn-outline btn-sm',
+    onclick: () => { location.hash = `a=${a.id}`; },
+  }, a.status === 'draft' ? 'Continue' : 'View'));
+  actions.appendChild(el('button', {
+    class: 'btn btn-danger btn-sm',
+    onclick: () => confirmDelete(a.id, propName),
+  }, 'Delete'));
+  card.appendChild(actions);
+  return card;
+}
+
+function confirmDelete(id, name) {
+  const overlay = el('div', { class: 'modal-overlay' });
+  const modal = el('div', { class: 'modal' }, [
+    el('h3', {}, 'Delete assessment?'),
+    el('p', {}, `This will permanently delete "${name}" and all attachments. This cannot be undone.`),
+    el('div', { class: 'modal-actions' }, [
+      el('button', { class: 'btn btn-outline btn-sm', onclick: () => overlay.remove() }, 'Cancel'),
+      el('button', {
+        class: 'btn btn-danger btn-sm', onclick: async () => {
+          await fetch(`${API}/assessments/${id}`, { method: 'DELETE' });
+          overlay.remove();
+          await loadDashboard();
+          renderDashboard();
+        }
+      }, 'Delete'),
+    ]),
+  ]);
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+}
+
+// ─── Service Picker ──────────────────────────────────────────────────────
+const SERVICE_ICONS = {
+  facade_cleaning: '🏢',
+  aerial_imaging: '🚁',
+  roof_leak_inspection: '🌧️',
+  firefighting_equipment: '🔥',
+};
+
+function renderPicker() {
+  const app = qs('#app');
+  app.innerHTML = '';
+  app.appendChild(el('a', { href: '#', class: 'back-link', onclick: navigateHome }, '← Back to dashboard'));
+  app.appendChild(el('div', { class: 'page-header' }, [el('h1', {}, 'Choose a service')]));
+
+  const grid = el('div', { class: 'service-grid' });
+  state.services.forEach(s => {
+    const card = el('div', {
+      class: 'service-card',
+      onclick: async () => {
+        const res = await fetch(`${API}/assessments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ service_id: s.id, assessor: 'Brice Adler' }),
+        });
+        const created = await res.json();
+        location.hash = `a=${created.id}`;
+      },
+    }, [
+      el('div', { class: 'icon' }, SERVICE_ICONS[s.id] || '📋'),
+      el('h3', {}, s.name),
+      el('p', {}, s.tagline),
+    ]);
+    grid.appendChild(card);
+  });
+  app.appendChild(grid);
+}
+
+// ─── Editor ──────────────────────────────────────────────────────────────
+function scheduleSave(patch) {
+  state.saveState = 'saving';
+  updateSaveStatus();
+  clearTimeout(state.saveTimer);
+  state._pendingPatch = { ...(state._pendingPatch || {}), ...patch };
+  state.saveTimer = setTimeout(async () => {
+    const patchBody = { data: state._pendingPatch };
+    state._pendingPatch = {};
+    try {
+      const res = await fetch(`${API}/assessments/${state.currentAssessment.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(patchBody),
+      });
+      const updated = await res.json();
+      state.currentAssessment = { ...state.currentAssessment, ...updated };
+      state.saveState = 'saved';
+      state.lastSavedAt = new Date();
+    } catch (e) {
+      state.saveState = 'error';
+    }
+    updateSaveStatus();
+  }, 800);
+}
+
+function updateSaveStatus() {
+  const elm = qs('#saveStatus');
+  if (!elm) return;
+  if (state.saveState === 'saving') { elm.textContent = 'Saving…'; elm.classList.add('saving'); }
+  else if (state.saveState === 'saved') {
+    elm.classList.remove('saving');
+    const secs = Math.round((Date.now() - state.lastSavedAt.getTime()) / 1000);
+    elm.textContent = `Auto-saved ${secs < 2 ? 'just now' : secs + 's ago'}`;
+  } else if (state.saveState === 'error') { elm.textContent = 'Save failed — retrying…'; }
+  else { elm.textContent = ''; }
+}
+setInterval(() => { if (state.saveState === 'saved') updateSaveStatus(); }, 4000);
+
+function fieldValue(key) {
+  return (state.currentAssessment.data || {})[key];
+}
+
+function renderField(field) {
+  const wrap = el('div', { class: 'field' });
+  const labelText = field.label + (field.required ? '' : '');
+  const label = el('label', {}, [labelText, field.required ? el('span', { class: 'req' }, '*') : null]);
+  wrap.appendChild(label);
+
+  const currentVal = fieldValue(field.key);
+
+  if (field.type === 'text') {
+    const input = el('input', { type: 'text', value: currentVal || '' });
+    input.addEventListener('input', (e) => scheduleSave({ [field.key]: e.target.value }));
+    wrap.appendChild(input);
+  } else if (field.type === 'textarea') {
+    const ta = el('textarea', {}, currentVal || '');
+    ta.value = currentVal || '';
+    ta.addEventListener('input', (e) => scheduleSave({ [field.key]: e.target.value }));
+    wrap.appendChild(ta);
+  } else if (field.type === 'number') {
+    const uw = el('div', { class: 'unit-wrap' });
+    const input = el('input', { type: 'number', value: currentVal ?? '' });
+    input.addEventListener('input', (e) => scheduleSave({ [field.key]: e.target.value === '' ? null : Number(e.target.value) }));
+    uw.appendChild(input);
+    if (field.unit) uw.appendChild(el('span', { class: 'unit-suffix' }, field.unit));
+    wrap.appendChild(uw);
+  } else if (field.type === 'date') {
+    const input = el('input', { type: 'date', value: currentVal || '' });
+    input.addEventListener('input', (e) => scheduleSave({ [field.key]: e.target.value }));
+    wrap.appendChild(input);
+  } else if (field.type === 'select') {
+    const sel = el('select', {});
+    sel.appendChild(el('option', { value: '' }, '— Select —'));
+    (field.options || []).forEach(o => {
+      const opt = el('option', { value: o }, o);
+      if (currentVal === o) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    sel.addEventListener('change', (e) => scheduleSave({ [field.key]: e.target.value }));
+    wrap.appendChild(sel);
+  } else if (field.type === 'yesno') {
+    const seg = el('div', { class: 'segmented' });
+    ['Yes', 'No'].forEach(opt => {
+      const btn = el('button', {
+        type: 'button',
+        class: currentVal === opt ? 'active' : '',
+        onclick: () => {
+          scheduleSave({ [field.key]: opt });
+          seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        },
+      }, opt);
+      seg.appendChild(btn);
+    });
+    wrap.appendChild(seg);
+  } else if (field.type === 'radio') {
+    const list = el('div', { class: 'radio-list' });
+    (field.options || []).forEach((o, i) => {
+      const inputId = `${field.key}_${i}`;
+      const optWrap = el('label', { class: 'radio-opt' + (currentVal === o ? ' active' : ''), for: inputId });
+      const radio = el('input', { type: 'radio', name: field.key, id: inputId });
+      radio.checked = currentVal === o;
+      radio.addEventListener('change', () => {
+        scheduleSave({ [field.key]: o });
+        list.querySelectorAll('.radio-opt').forEach(r => r.classList.remove('active'));
+        optWrap.classList.add('active');
+      });
+      optWrap.appendChild(radio);
+      optWrap.appendChild(el('span', {}, o));
+      list.appendChild(optWrap);
+    });
+    wrap.appendChild(list);
+  } else if (field.type === 'multiselect') {
+    const chips = el('div', { class: 'chips' });
+    const selected = new Set(Array.isArray(currentVal) ? currentVal : []);
+    (field.options || []).forEach(o => {
+      const chip = el('button', {
+        type: 'button',
+        class: 'chip' + (selected.has(o) ? ' active' : ''),
+        onclick: () => {
+          if (selected.has(o)) selected.delete(o); else selected.add(o);
+          chip.classList.toggle('active');
+          scheduleSave({ [field.key]: Array.from(selected) });
+        },
+      }, o);
+      chips.appendChild(chip);
+    });
+    wrap.appendChild(chips);
+  } else if (field.type === 'checkbox') {
+    const seg = el('div', { class: 'segmented' });
+    const btn = el('button', {
+      type: 'button', class: currentVal ? 'active' : '',
+      onclick: () => { const v = !currentVal; scheduleSave({ [field.key]: v }); btn.classList.toggle('active'); },
+    }, currentVal ? 'Checked' : 'Unchecked');
+    seg.appendChild(btn);
+    wrap.appendChild(seg);
+  }
+
+  if (field.help) wrap.appendChild(el('div', { class: 'help' }, field.help));
+  return wrap;
+}
+
+function renderAttachmentsSection() {
+  const block = el('div', { class: 'section-block' });
+  block.appendChild(el('h2', {}, 'Attachments'));
+  block.appendChild(el('div', { class: 'section-rule' }));
+  block.appendChild(el('p', { class: 'section-desc' }, 'Photos and video from the site visit. Tap to open your camera on mobile.'));
+
+  const fileInput = el('input', {
+    type: 'file', multiple: '', accept: 'image/*,video/*', capture: 'environment', style: 'display:none',
+  });
+  fileInput.addEventListener('change', async (e) => {
+    if (!e.target.files.length) return;
+    const fd = new FormData();
+    for (const f of e.target.files) fd.append('files', f);
+    const zone = qs('#attachZoneLabel');
+    if (zone) zone.textContent = 'Uploading…';
+    await fetch(`${API}/assessments/${state.currentAssessment.id}/attachments`, { method: 'POST', body: fd });
+    await loadAssessment(state.currentAssessment.id);
+    renderEditor();
+  });
+
+  const zone = el('div', { class: 'attach-zone', onclick: () => fileInput.click() }, [
+    el('div', {}, '📎'),
+    el('div', { id: 'attachZoneLabel' }, 'Tap to add photos or video'),
+  ]);
+  block.appendChild(zone);
+  block.appendChild(fileInput);
+
+  const attachments = state.currentAssessment.attachments || [];
+  if (attachments.length) {
+    const thumbs = el('div', { class: 'attach-thumbs' });
+    attachments.forEach(a => {
+      const isImage = (a.mime_type || '').startsWith('image/');
+      const thumbEl = el('div', { class: 'attach-thumb' });
+      if (isImage) {
+        thumbEl.appendChild(el('img', { src: `${API}/attachments/${a.id}` }));
+      } else {
+        thumbEl.appendChild(el('div', { class: 'video-placeholder' }, '🎬'));
+      }
+      thumbEl.appendChild(el('div', { class: 'cap' }, a.original_name || ''));
+      thumbEl.appendChild(el('button', {
+        class: 'del-btn', title: 'Delete',
+        onclick: async () => {
+          await fetch(`${API}/attachments/${a.id}`, { method: 'DELETE' });
+          await loadAssessment(state.currentAssessment.id);
+          renderEditor();
+        },
+      }, '✕'));
+      thumbs.appendChild(thumbEl);
+    });
+    block.appendChild(thumbs);
+  }
+  return block;
+}
+
+function validateRequired() {
+  const svc = serviceById(state.currentAssessment.service_id);
+  if (!svc) return [];
+  const missing = [];
+  svc.sections.forEach(sec => {
+    sec.fields.forEach(f => {
+      if (f.required) {
+        const v = fieldValue(f.key);
+        if (v == null || v === '' || (Array.isArray(v) && v.length === 0)) {
+          missing.push(f.label);
+        }
+      }
+    });
+  });
+  return missing;
+}
+
+function renderEditor() {
+  const app = qs('#app');
+  app.innerHTML = '';
+  if (!state.currentAssessment) {
+    app.appendChild(el('div', { class: 'empty-state' }, 'Assessment not found.'));
+    return;
+  }
+  const svc = serviceById(state.currentAssessment.service_id) || {};
+  const a = state.currentAssessment;
+
+  // Sticky editor header (outside container flow visually but appended here)
+  const header = el('div', { class: 'editor-header' });
+  const propInput = el('input', {
+    class: 'prop-name-input', type: 'text',
+    value: fieldValue('property_name') || '',
+    placeholder: 'Property name…',
+  });
+  propInput.addEventListener('input', (e) => scheduleSave({ property_name: e.target.value }));
+  header.appendChild(propInput);
+  header.appendChild(el('span', { class: 'service-badge' }, svc.name || a.service_id));
+  header.appendChild(el('span', { class: 'save-status', id: 'saveStatus' }, ''));
+  app.parentElement.insertBefore(header, app);
+  // remove any previous header
+  document.querySelectorAll('.editor-header').forEach((h, i, arr) => { if (i < arr.length - 1) h.remove(); });
+
+  app.appendChild(el('a', { href: '#', class: 'back-link', onclick: navigateHome }, '← Back to dashboard'));
+
+  if (svc.sections) {
+    svc.sections.forEach(sec => {
+      const block = el('div', { class: 'section-block' });
+      block.appendChild(el('h2', {}, sec.title));
+      block.appendChild(el('div', { class: 'section-rule' }));
+      if (sec.description) block.appendChild(el('p', { class: 'section-desc' }, sec.description));
+      sec.fields.forEach(f => block.appendChild(renderField(f)));
+      app.appendChild(block);
+    });
+  }
+
+  app.appendChild(renderAttachmentsSection());
+
+  const submitBar = el('div', { class: 'submit-bar' });
+  const submitBtn = el('button', {
+    class: 'btn btn-gold btn-block',
+    onclick: async () => {
+      const missing = validateRequired();
+      if (missing.length) {
+        alert(`Please complete these required fields first:\n\n${missing.join('\n')}`);
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Submitting…';
+      try {
+        const res = await fetch(`${API}/assessments/${a.id}/submit`, { method: 'POST' });
+        const result = await res.json();
+        await loadAssessment(a.id);
+        state.view = 'detail';
+        renderDetail(result);
+      } catch (e) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Assessment';
+        alert('Submit failed. Please try again.');
+      }
+    },
+  }, 'Submit Assessment');
+  submitBar.appendChild(submitBtn);
+  app.appendChild(submitBar);
+
+  updateSaveStatus();
+}
+
+// ─── Detail / View (submitted) ───────────────────────────────────────────
+function renderDetail(justSubmittedResult) {
+  const app = qs('#app');
+  document.querySelectorAll('.editor-header').forEach(h => h.remove());
+  app.innerHTML = '';
+  const a = state.currentAssessment;
+  if (!a) { app.appendChild(el('div', { class: 'empty-state' }, 'Assessment not found.')); return; }
+  const svc = serviceById(a.service_id) || {};
+
+  app.appendChild(el('a', { href: '#', class: 'back-link', onclick: navigateHome }, '← Back to dashboard'));
+
+  if (justSubmittedResult) {
+    app.appendChild(el('div', { class: 'banner banner-success' },
+      `Submitted ✓ — PDF generated${justSubmittedResult.crm_deal_id ? ' and CRM deal #' + justSubmittedResult.crm_deal_id + ' created' : ' (CRM deal creation pending or unavailable)'}.`));
+  }
+
+  const header = el('div', { class: 'page-header' }, [
+    el('div', {}, [
+      el('h1', {}, a.property_name || (a.data && a.data.property_name) || 'Untitled Property'),
+      el('div', { class: 'meta-line' }, `${svc.name || a.service_id} · Status: ${a.status}`),
+    ]),
+  ]);
+  app.appendChild(header);
+
+  const actions = el('div', { class: 'view-actions' });
+  actions.appendChild(el('a', {
+    href: `${API}/assessments/${a.id}/pdf`, target: '_blank', rel: 'noopener',
+    class: 'btn btn-gold',
+  }, 'Download PDF'));
+  if (a.crm_deal_id) {
+    actions.appendChild(el('a', {
+      href: `https://skyline-drones-crm.onrender.com/#deal-${a.crm_deal_id}`, target: '_blank', rel: 'noopener',
+      class: 'btn btn-outline',
+    }, 'Open CRM Deal'));
+  }
+  actions.appendChild(el('button', {
+    class: 'btn btn-outline',
+    onclick: async () => {
+      const res = await fetch(`${API}/assessments/${a.id}/duplicate`, { method: 'POST' });
+      const dup = await res.json();
+      location.hash = `a=${dup.id}`;
+    },
+  }, 'Duplicate'));
+  if (a.status !== 'archived') {
+    actions.appendChild(el('button', {
+      class: 'btn btn-outline',
+      onclick: async () => {
+        await fetch(`${API}/assessments/${a.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'archived' }) });
+        await loadAssessment(a.id);
+        renderDetail();
+      },
+    }, 'Archive'));
+  }
+  actions.appendChild(el('button', {
+    class: 'btn btn-danger',
+    onclick: () => confirmDelete(a.id, a.property_name || 'this assessment'),
+  }, 'Delete'));
+  app.appendChild(actions);
+
+  if (svc.sections) {
+    svc.sections.forEach(sec => {
+      const block = el('div', { class: 'section-block' });
+      block.appendChild(el('h2', {}, sec.title));
+      block.appendChild(el('div', { class: 'section-rule' }));
+      const table = el('table', { class: 'view-qa-table' });
+      sec.fields.forEach(f => {
+        const v = (a.data || {})[f.key];
+        let display = '—';
+        if (v != null && v !== '' && !(Array.isArray(v) && v.length === 0)) {
+          if (f.type === 'yesno') display = v;
+          else if (Array.isArray(v)) display = v.join(', ');
+          else display = String(v) + (f.unit && f.type === 'number' ? ` ${f.unit}` : '');
+        }
+        table.appendChild(el('tr', {}, [
+          el('td', { class: 'q' }, f.label),
+          el('td', {}, display),
+        ]));
+      });
+      block.appendChild(table);
+      app.appendChild(block);
+    });
+  }
+
+  const attachments = a.attachments || [];
+  if (attachments.length) {
+    const block = el('div', { class: 'section-block' });
+    block.appendChild(el('h2', {}, 'Attachments'));
+    block.appendChild(el('div', { class: 'section-rule' }));
+    const thumbs = el('div', { class: 'attach-thumbs' });
+    attachments.forEach(att => {
+      const isImage = (att.mime_type || '').startsWith('image/');
+      const thumbEl = el('div', { class: 'attach-thumb' });
+      if (isImage) thumbEl.appendChild(el('img', { src: `${API}/attachments/${att.id}` }));
+      else thumbEl.appendChild(el('div', { class: 'video-placeholder' }, '🎬'));
+      thumbEl.appendChild(el('div', { class: 'cap' }, att.original_name || ''));
+      thumbs.appendChild(thumbEl);
+    });
+    block.appendChild(thumbs);
+    app.appendChild(block);
+  }
+}
+
+// ─── Boot ────────────────────────────────────────────────────────────────
+async function boot() {
+  applyTheme();
+  await Promise.all([loadServices(), loadSchemas()]);
+  // CRITICAL: session/state-restore path must ALSO invoke the view renderer,
+  // not just the data loader (same principle as the CRM blank-main-pane fix).
+  await routeFromHash();
+}
+boot();
+</script>
+</body>
+</html>
